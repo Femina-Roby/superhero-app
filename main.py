@@ -106,12 +106,29 @@ load_dotenv()
 #         st.stop()  # Stop execution if no API key is found
 
 
-# Configure the Gemini API key securely
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    st.error("API key not found. Please set it in the .env file.")
-else:
+# # Configure the Gemini API key securely
+# api_key = os.getenv("GEMINI_API_KEY")
+# if not api_key:
+#     st.error("API key not found. Please set it in the .env file.")
+# else:
+#     genai.configure(api_key=api_key)
+
+if "GEMINI_API_KEY" in st.secrets:  # Check if the secret is available
+    api_key = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=api_key)
+else:  # Handle missing secret (e.g., during local development)
+    try:
+        from dotenv import load_dotenv
+        load_dotenv() 
+        api_key = os.getenv("GEMINI_API_KEY")
+        if api_key:
+            genai.configure(api_key=api_key)
+        else:
+            st.error("GEMINI_API_KEY not found. Set it in Streamlit secrets or .env file.")
+            st.stop() 
+    except ImportError:
+        st.error("python-dotenv is not installed. Install it with 'pip install python-dotenv'")
+        st.stop()
 
 
 # Select the 'gemini-pro' model
